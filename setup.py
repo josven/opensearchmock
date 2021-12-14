@@ -2,7 +2,7 @@
 
 import setuptools
 
-__version__ = '1.8.1'
+__version__ = '1.0.0'
 
 # read the contents of your readme file
 from os import path
@@ -11,17 +11,17 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setuptools.setup(
-    name='ElasticMock',
+    name='OpenseachMock',
     version=__version__,
-    author='Marcos Cardoso',
-    author_email='vrcmarcos@gmail.com',
-    description='Python Elasticsearch Mock for test purposes',
+    author='Jonas Svensson',
+    author_email='jonas.s.svensson@gmail.com',
+    description='Python Opensearch Mock for test purposes',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/vrcmarcos/elasticmock',
+    url='https://github.com/josven/opensearchmock',
     packages=setuptools.find_packages(exclude=('tests')),
     install_requires=[
-        'elasticsearch',
+        'opensearch-py',
         'python-dateutil',
     ],
     classifiers=[

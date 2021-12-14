@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from tests import TestElasticmock
+from tests import TestOpensearchmock
 
 
-class TestHealth(TestElasticmock):
+class TestHealth(TestOpensearchmock):
 
     def test_should_return_health(self):
-        health_status = self.es.cluster.health()
+        health_status = self.os.cluster.health()
 
         expected_health_status = {
             'cluster_name': 'testcluster',

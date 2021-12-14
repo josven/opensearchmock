@@ -2,10 +2,10 @@
 
 import json
 
-from tests import TestElasticmock, INDEX_NAME, DOC_TYPE, BODY, DOC_ID
+from tests import TestOpensearchmock, INDEX_NAME, DOC_TYPE, BODY, DOC_ID
 
 
-class TestBulk(TestElasticmock):
+class TestBulk(TestOpensearchmock):
 
     def test_should_bulk_index_documents_index_creates(self):
         action = {'index': {'_index': INDEX_NAME, '_type': DOC_TYPE}}
@@ -19,7 +19,7 @@ class TestBulk(TestElasticmock):
             lines.append(body_json)
         body = '\n'.join(lines)
 
-        data = self.es.bulk(body=body)
+        data = self.os.bulk(body=body)
         items = data.get('items')
 
         self.assertFalse(data.get('errors'))
@@ -48,7 +48,7 @@ class TestBulk(TestElasticmock):
         ]
         body = '\n'.join(actions)
 
-        data = self.es.bulk(body=body)
+        data = self.os.bulk(body=body)
 
         items = data.get('items')
 
@@ -77,7 +77,7 @@ class TestBulk(TestElasticmock):
             lines.append(body_json)
         body = '\n'.join(lines)
 
-        data = self.es.bulk(body=body)
+        data = self.os.bulk(body=body)
         items = data.get('items')
 
         self.assertFalse(data.get('errors'))
@@ -109,7 +109,7 @@ class TestBulk(TestElasticmock):
             lines.append(body_json)
         body = '\n'.join(lines)
 
-        data = self.es.bulk(body=body)
+        data = self.os.bulk(body=body)
         items = data.get('items')
 
         self.assertFalse(data.get('errors'))
@@ -140,7 +140,7 @@ class TestBulk(TestElasticmock):
         ]
         body = '\n'.join(lines)
 
-        data = self.es.bulk(body=body)
+        data = self.os.bulk(body=body)
         items = data.get('items')
 
         self.assertFalse(data.get('errors'))
@@ -183,7 +183,7 @@ class TestBulk(TestElasticmock):
         ]
         body = '\n'.join(actions)
 
-        data = self.es.bulk(body=body)
+        data = self.os.bulk(body=body)
 
         expected = [
             {'create': {'_type': DOC_TYPE, '_id': 1, '_index': INDEX_NAME,

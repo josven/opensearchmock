@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from tests import TestElasticmock
+from tests import TestOpensearchmock
 
 
-class TestPing(TestElasticmock):
+class TestPing(TestOpensearchmock):
 
     def test_should_return_true_when_ping(self):
-        self.assertTrue(self.es.ping())
+        self.assertTrue(self.os.ping())

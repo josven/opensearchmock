@@ -1,96 +1,96 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from elasticsearch.exceptions import NotFoundError
+from opensearchpy.exceptions import NotFoundError
 from parameterized import parameterized
 
-from tests import TestElasticmock, INDEX_NAME, DOC_TYPE
+from tests import TestOpensearchmock, INDEX_NAME, DOC_TYPE
 
 
-class TestSearch(TestElasticmock):
+class TestSearch(TestOpensearchmock):
 
     def test_should_raise_notfounderror_when_search_for_unexistent_index(self):
         with self.assertRaises(NotFoundError):
-            self.es.search(index=INDEX_NAME)
+            self.os.search(index=INDEX_NAME)
 
     def test_should_return_hits_hits_even_when_no_result(self):
-        search = self.es.search()
+        search = self.os.search()
         self.assertEqual(0, search.get('hits').get('total').get('value'))
         self.assertListEqual([], search.get('hits').get('hits'))
 
     def test_should_return_skipped_shards(self):
-        search = self.es.search()
+        search = self.os.search()
         self.assertEqual(0, search.get('_shards').get('skipped'))
 
     def test_should_return_all_documents(self):
         index_quantity = 10
         for i in range(0, index_quantity):
-            self.es.index(index='index_{0}'.format(i), doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+            self.os.index(index='index_{0}'.format(i), doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
 
-        search = self.es.search()
+        search = self.os.search()
         self.assertEqual(index_quantity, search.get('hits').get('total').get('value'))
 
     def test_should_return_all_documents_match_all(self):
         index_quantity = 10
         for i in range(0, index_quantity):
-            self.es.index(index='index_{0}'.format(i), doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+            self.os.index(index='index_{0}'.format(i), doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
 
-        search = self.es.search(body={'query': {'match_all': {}}})
+        search = self.os.search(body={'query': {'match_all': {}}})
         self.assertEqual(index_quantity, search.get('hits').get('total').get('value'))
 
     def test_should_return_only_indexed_documents_on_index(self):
         index_quantity = 2
         for i in range(0, index_quantity):
-            self.es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+            self.os.index(index=INDEX_NAME, doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
 
-        search = self.es.search(index=INDEX_NAME)
+        search = self.os.search(index=INDEX_NAME)
         self.assertEqual(index_quantity, search.get('hits').get('total').get('value'))
 
     def test_should_return_only_indexed_documents_on_index_with_doc_type(self):
         index_quantity = 2
         for i in range(0, index_quantity):
-            self.es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
-        self.es.index(index=INDEX_NAME, doc_type='another-Doctype', body={'data': 'test'})
+            self.os.index(index=INDEX_NAME, doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+        self.os.index(index=INDEX_NAME, doc_type='another-Doctype', body={'data': 'test'})
 
-        search = self.es.search(index=INDEX_NAME, doc_type=DOC_TYPE)
+        search = self.os.search(index=INDEX_NAME, doc_type=DOC_TYPE)
         self.assertEqual(index_quantity, search.get('hits').get('total').get('value'))
 
     def test_should_search_in_multiple_indexes(self):
-        self.es.index(index='groups', doc_type='groups', body={'budget': 1000})
-        self.es.index(index='users', doc_type='users', body={'name': 'toto'})
-        self.es.index(index='pcs', doc_type='pcs', body={'model': 'macbook'})
+        self.os.index(index='groups', doc_type='groups', body={'budget': 1000})
+        self.os.index(index='users', doc_type='users', body={'name': 'toto'})
+        self.os.index(index='pcs', doc_type='pcs', body={'model': 'macbook'})
 
-        result = self.es.search(index=['users', 'pcs'])
+        result = self.os.search(index=['users', 'pcs'])
         self.assertEqual(2, result.get('hits').get('total').get('value'))
 
     def test_usage_of_aggregations(self):
-        self.es.index(index='index', doc_type='document', body={'genre': 'rock'})
+        self.os.index(index='index', doc_type='document', body={'genre': 'rock'})
 
         body = {"aggs": {"genres": {"terms": {"field": "genre"}}}}
-        result = self.es.search(index='index', body=body)
+        result = self.os.search(index='index', body=body)
 
         self.assertTrue('aggregations' in result)
 
     def test_search_with_scroll_param(self):
         for _ in range(100):
-            self.es.index(index='groups', doc_type='groups', body={'budget': 1000})
+            self.os.index(index='groups', doc_type='groups', body={'budget': 1000})
 
-        result = self.es.search(index='groups', params={'scroll': '1m', 'size': 30})
+        result = self.os.search(index='groups', params={'scroll': '1m', 'size': 30})
         self.assertNotEqual(None, result.get('_scroll_id', None))
         self.assertEqual(30, len(result.get('hits').get('hits')))
         self.assertEqual(100, result.get('hits').get('total').get('value'))
 
     def test_search_with_match_query(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body={'query': {'match': {'data': 'TEST'}}})
         self.assertEqual(response['hits']['total']['value'], 10)
         hits = response['hits']['hits']
         self.assertEqual(len(hits), 10)
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'match': {'data': '3'}}})
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'match': {'data': '3'}}})
         self.assertEqual(response['hits']['total']['value'], 1)
         hits = response['hits']['hits']
         self.assertEqual(len(hits), 1)
@@ -98,8 +98,8 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_match_query_in_int_list(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': [i, 11, 13]})
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'match': {'data': 1}}})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': [i, 11, 13]})
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'match': {'data': 1}}})
         self.assertEqual(response['hits']['total']['value'], 1)
         hits = response['hits']['hits']
         self.assertEqual(len(hits), 1)
@@ -107,9 +107,9 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_match_query_in_string_list(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': [str(i), 'two', 'three']})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': [str(i), 'two', 'three']})
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'match': {'data': '1'}}})
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'match': {'data': '1'}}})
         self.assertEqual(response['hits']['total']['value'], 1)
         hits = response['hits']['hits']
         self.assertEqual(len(hits), 1)
@@ -117,15 +117,15 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_term_query(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body={'query': {'term': {'data': 'TEST'}}})
         self.assertEqual(response['hits']['total']['value'], 0)
         hits = response['hits']['hits']
         self.assertEqual(len(hits), 0)
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'term': {'data': '3'}}})
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE, body={'query': {'term': {'data': '3'}}})
         self.assertEqual(response['hits']['total']['value'], 1)
         hits = response['hits']['hits']
         self.assertEqual(len(hits), 1)
@@ -133,9 +133,9 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_bool_query(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'id': i})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'id': i})
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body={'query': {'bool': {'filter': [{'term': {'id': 1}}]}}})
         self.assertEqual(response['hits']['total']['value'], 1)
         hits = response['hits']['hits']
@@ -143,8 +143,8 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_must_not_query(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'id': i})
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'id': i})
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body={'query': {'bool': {
                                       'filter': [{'terms': {'id': [1, 2]}}],
                                       'must_not': [{'term': {'id': 1}}],
@@ -155,9 +155,9 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_terms_query(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'id': i})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'id': i})
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body={'query': {'terms': {'id': [1, 2, 3]}}})
         self.assertEqual(response['hits']['total']['value'], 3)
         hits = response['hits']['hits']
@@ -165,11 +165,11 @@ class TestSearch(TestElasticmock):
 
     def test_query_on_nested_data(self):
         for i, y in enumerate(['yes', 'no']):
-            self.es.index('index_for_search', doc_type=DOC_TYPE,
+            self.os.index('index_for_search', doc_type=DOC_TYPE,
                           body={'id': i, 'data': {'x': i, 'y': y}})
 
         for term, value, i in [('data.x', 1, 1), ('data.y', 'yes', 0)]:
-            response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+            response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                       body={'query': {'term': {term: value}}})
             self.assertEqual(1, response['hits']['total']['value'])
             doc = response['hits']['hits'][0]['_source']
@@ -178,7 +178,7 @@ class TestSearch(TestElasticmock):
 
     def test_search_with_bool_query_and_multi_match(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={
                 'data': 'test_{0}'.format(i) if i % 2 == 0 else None,
                 'data2': 'test_{0}'.format(i) if (i+1) % 2 == 0 else None
                 })
@@ -195,7 +195,7 @@ class TestSearch(TestElasticmock):
                 }
             }
         }
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body=search_body)
         self.assertEqual(response['hits']['total']['value'], 10)
         hits = response['hits']['hits']
@@ -203,9 +203,9 @@ class TestSearch(TestElasticmock):
 
     def test_search_bool_should_match_query(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body={'data': 'test_{0}'.format(i)})
 
-        response = self.es.search(index='index_for_search', doc_type=DOC_TYPE,
+        response = self.os.search(index='index_for_search', doc_type=DOC_TYPE,
                                   body={
                                       'query': {
                                           'bool': {
@@ -224,12 +224,12 @@ class TestSearch(TestElasticmock):
 
     def test_msearch(self):
         for i in range(0, 10):
-            self.es.index(index='index_for_search1', doc_type=DOC_TYPE, body={
+            self.os.index(index='index_for_search1', doc_type=DOC_TYPE, body={
                 'data': 'test_{0}'.format(i) if i % 2 == 0 else None,
                 'data2': 'test_{0}'.format(i) if (i+1) % 2 == 0 else None
                 })
         for i in range(0, 10):
-            self.es.index(index='index_for_search2', doc_type=DOC_TYPE, body={
+            self.os.index(index='index_for_search2', doc_type=DOC_TYPE, body={
                 'data': 'test_{0}'.format(i) if i % 2 == 0 else None,
                 'data2': 'test_{0}'.format(i) if (i+1) % 2 == 0 else None
                 })
@@ -252,7 +252,7 @@ class TestSearch(TestElasticmock):
         body.append({'index': 'index_for_search2'})
         body.append(search_body)
 
-        result = self.es.msearch(index='index_for_search', body=body)
+        result = self.os.msearch(index='index_for_search', body=body)
         response1, response2 = result['responses']
         self.assertEqual(response1['hits']['total']['value'], 10)
         hits1 = response1['hits']['hits']
@@ -327,9 +327,9 @@ class TestSearch(TestElasticmock):
                 'timestamp': datetime.datetime(2009, 1, 1, 10, 5 * i, 0),
                 'data_int': 10 * i,
             }
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body=body)
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body=body)
 
-        response = self.es.search(
+        response = self.os.search(
             index='index_for_search',
             doc_type=DOC_TYPE,
             body={'query': {'range': query_range}},
@@ -348,9 +348,9 @@ class TestSearch(TestElasticmock):
             {"data_x": 3, "data_y": "b"},
         ]
         for body in data:
-            self.es.index(index='index_for_search', doc_type=DOC_TYPE, body=body)
+            self.os.index(index='index_for_search', doc_type=DOC_TYPE, body=body)
 
-        response = self.es.search(
+        response = self.os.search(
             index="index_for_search",
             doc_type=DOC_TYPE,
             body={

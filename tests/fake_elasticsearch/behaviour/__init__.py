@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from elasticmock import behaviour
-from tests import TestElasticmock
+from opensearchmock import behaviour
+from tests import TestOpensearchmock
 
 
-class TestElasticmockBehaviour(TestElasticmock):
+class TestOpensearchmockBehaviour(TestOpensearchmock):
 
     def tearDown(self):
         behaviour.disable_all()

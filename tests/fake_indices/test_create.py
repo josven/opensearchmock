@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from tests import TestElasticmock, INDEX_NAME
+from tests import TestOpensearchmock, INDEX_NAME
 
 
-class TestCreate(TestElasticmock):
+class TestCreate(TestOpensearchmock):
 
     def test_should_create_index(self):
-        self.assertFalse(self.es.indices.exists(INDEX_NAME))
-        self.es.indices.create(INDEX_NAME)
-        self.assertTrue(self.es.indices.exists(INDEX_NAME))
+        self.assertFalse(self.os.indices.exists(INDEX_NAME))
+        self.os.indices.create(INDEX_NAME)
+        self.assertTrue(self.os.indices.exists(INDEX_NAME))

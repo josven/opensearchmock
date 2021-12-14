@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 
-from elasticsearch.exceptions import NotFoundError
+from opensearchpy.exceptions import NotFoundError
 
-from tests import TestElasticmock, INDEX_NAME, DOC_TYPE, BODY
+from tests import TestOpensearchmock, INDEX_NAME, DOC_TYPE, BODY
 
 
-class TestGet(TestElasticmock):
+class TestGet(TestOpensearchmock):
 
     def test_should_raise_notfounderror_when_nonindexed_id_is_used(self):
         with self.assertRaises(NotFoundError):
-            self.es.get(index=INDEX_NAME, id='1')
+            self.os.get(index=INDEX_NAME, id='1')
 
     def test_should_not_raise_notfounderror_when_nonindexed_id_is_used_and_ignored(self):
-        target_doc = self.es.get(index=INDEX_NAME, id='1', ignore=404)
+        target_doc = self.os.get(index=INDEX_NAME, id='1', ignore=404)
         self.assertFalse(target_doc.get('found'))
 
     def test_should_not_raise_notfounderror_when_nonindexed_id_is_used_and_ignored_list(self):
-        target_doc = self.es.get(index=INDEX_NAME, id='1', ignore=(401, 404))
+        target_doc = self.os.get(index=INDEX_NAME, id='1', ignore=(401, 404))
         self.assertFalse(target_doc.get('found'))
 
     def test_should_get_document_with_id(self):
-        data = self.es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
+        data = self.os.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
 
         document_id = data.get('_id')
-        target_doc = self.es.get(index=INDEX_NAME, id=document_id)
+        target_doc = self.os.get(index=INDEX_NAME, id=document_id)
 
         expected = {
             '_type': DOC_TYPE,
@@ -37,10 +37,10 @@ class TestGet(TestElasticmock):
         self.assertDictEqual(expected, target_doc)
 
     def test_should_get_document_with_id_and_doc_type(self):
-        data = self.es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
+        data = self.os.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
 
         document_id = data.get('_id')
-        target_doc = self.es.get(index=INDEX_NAME, id=document_id, doc_type=DOC_TYPE)
+        target_doc = self.os.get(index=INDEX_NAME, id=document_id, doc_type=DOC_TYPE)
 
         expected = {
             '_type': DOC_TYPE,
@@ -54,17 +54,17 @@ class TestGet(TestElasticmock):
         self.assertDictEqual(expected, target_doc)
 
     def test_should_get_only_document_source_with_id(self):
-        data = self.es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
+        data = self.os.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
 
         document_id = data.get('_id')
-        target_doc_source = self.es.get_source(index=INDEX_NAME, doc_type=DOC_TYPE, id=document_id)
+        target_doc_source = self.os.get_source(index=INDEX_NAME, doc_type=DOC_TYPE, id=document_id)
 
         self.assertEqual(target_doc_source, BODY)
 
     def test_mget_get_several_documents_by_id(self):
         ids = []
         for _ in range(0, 10):
-            data = self.es.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
+            data = self.os.index(index=INDEX_NAME, doc_type=DOC_TYPE, body=BODY)
             ids.append(data.get('_id'))
-        results = self.es.mget(index=INDEX_NAME, body={'ids': ids})
+        results = self.os.mget(index=INDEX_NAME, body={'ids': ids})
         self.assertEqual(len(results['docs']), 10)

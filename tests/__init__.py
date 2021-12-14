@@ -3,22 +3,22 @@
 import unittest
 from datetime import datetime
 
-import elasticsearch
+import opensearchpy
 
-from elasticmock import elasticmock
+from opensearchmock import opensearchmock
 
 INDEX_NAME = 'test_index'
 DOC_TYPE = 'doc-Type'
 DOC_ID = 'doc-id'
 BODY = {
     'author': 'kimchy',
-    'text': 'Elasticsearch: cool. bonsai cool.',
+    'text': 'Opensearch: cool. bonsai cool.',
     'timestamp': datetime.now(),
 }
 
 
-class TestElasticmock(unittest.TestCase):
+class TestOpensearchmock(unittest.TestCase):
 
-    @elasticmock
+    @opensearchmock
     def setUp(self):
-        self.es = elasticsearch.Elasticsearch(hosts=[{'host': 'localhost', 'port': 9200}])
+        self.os = opensearchpy.OpenSearch(hosts=[{'host': 'localhost', 'port': 9200}])

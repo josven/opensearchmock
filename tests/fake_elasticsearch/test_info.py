@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from tests import TestElasticmock
+from tests import TestOpensearchmock
 
 
-class TestInfo(TestElasticmock):
+class TestInfo(TestOpensearchmock):
 
     def test_should_return_status_200_for_info(self):
-        info = self.es.info()
+        info = self.os.info()
         self.assertEqual(info.get('status'), 200)

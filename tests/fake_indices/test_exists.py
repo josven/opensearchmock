@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from tests import TestElasticmock, INDEX_NAME
+from tests import TestOpensearchmock, INDEX_NAME
 
 
-class TestExists(TestElasticmock):
+class TestExists(TestOpensearchmock):
 
     def test_should_return_false_when_index_does_not_exists(self):
-        self.assertFalse(self.es.indices.exists(INDEX_NAME))
+        self.assertFalse(self.os.indices.exists(INDEX_NAME))
 
     def test_should_return_true_when_index_exists(self):
-        self.es.indices.create(INDEX_NAME)
-        self.assertTrue(self.es.indices.exists(INDEX_NAME))
+        self.os.indices.create(INDEX_NAME)
+        self.assertTrue(self.os.indices.exists(INDEX_NAME))

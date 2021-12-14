@@ -2,10 +2,10 @@
 
 from functools import wraps
 
-from elasticsearch.client import _normalize_hosts
+from opensearchpy.client import _normalize_hosts
 from unittest.mock import patch
 
-from elasticmock.fake_elasticsearch import FakeElasticsearch
+from opensearchmock.fake_opensearch import FakeOpensearch
 
 ELASTIC_INSTANCES = {}
 
@@ -19,16 +19,16 @@ def _get_elasticmock(hosts=None, *args, **kwargs):
     if elastic_key in ELASTIC_INSTANCES:
         connection = ELASTIC_INSTANCES.get(elastic_key)
     else:
-        connection = FakeElasticsearch()
+        connection = FakeOpensearch()
         ELASTIC_INSTANCES[elastic_key] = connection
     return connection
 
 
-def elasticmock(f):
+def opensearchmock(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         ELASTIC_INSTANCES.clear()
-        with patch('elasticsearch.Elasticsearch', _get_elasticmock):
+        with patch('opensearchpy.OpenSearch', _get_elasticmock):
             result = f(*args, **kwargs)
         return result
     return decorated
